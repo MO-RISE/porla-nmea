@@ -1,4 +1,4 @@
-# porla-extension-template
+# porla-nmea
 This is an extension to [`porla`](https://github.com/MO-RISE/porla)
 
 ## What
@@ -7,7 +7,7 @@ This extension provides functionality to handle ~~NMEA0183~~ and NMEA2000 data
 
 ### Built-in functionality
 
--
+N/A
 
 ### 3rd-party tools
 
