@@ -12,6 +12,6 @@ RUN mkdir canboat && \
     cd canboat && \
     make
 
-FROM ghcr.io/mo-rise/porla:v0.1.0
+FROM ghcr.io/mo-rise/porla:v0.2.0
 
 COPY --from=BUILD --chmod=555 /canboat/rel/linux-x86_64/* /usr/local/bin/
