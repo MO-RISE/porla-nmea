@@ -29,8 +29,8 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            ghcr.io/mo-rise/porla:latest
-            ghcr.io/mo-rise/porla:${{ github.event.release.tag_name }}
+            ghcr.io/mo-rise/porla-nmea:latest
+            ghcr.io/mo-rise/porla-nmea:${{ github.event.release.tag_name }}
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
