@@ -14,4 +14,7 @@ RUN mkdir canboat && \
 
 FROM ghcr.io/mo-rise/porla:v0.2.1
 
+COPY requirements.txt requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
+
 COPY --from=BUILD --chmod=555 /canboat/rel/linux-x86_64/* /usr/local/bin/
