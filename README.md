@@ -11,7 +11,8 @@ N/A
 
 ### 3rd-party tools
 
-All binaries provided by the `canboat` project, see here: https://github.com/canboat/canboat/wiki#programs-included-in-canboat
+* All binaries provided by the `canboat` project, see here: https://github.com/canboat/canboat/wiki#programs-included-in-canboat
+* The `ais-decode` command line utility from the `pyais`package: https://github.com/M0r13n/pyais
 
 ## Usage
 
