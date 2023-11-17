@@ -3,11 +3,11 @@ This is an extension to [`porla`](https://github.com/MO-RISE/porla)
 
 ## What
 
-This extension provides functionality to handle ~~NMEA0183~~ and NMEA2000 data
+This extension provides functionality to handle ~~NMEA0183~~, NMEA2000 and LWE450 data
 
 ### Built-in functionality
 
-N/A
+* `lwe450` - Support for interfacing (listening/sending) to LWE450 multicast networks
 
 ### 3rd-party tools
 

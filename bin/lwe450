@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+
+"""
+Command line utility tool for listening to udp traffic and
+outputting to stdout.
+"""
+
+import sys
+import socket
+import argparse
+from base64 import b64encode, b64decode
+
+TRANSMISSION_GROUPS = {
+    "MISC": ("239.192.0.1", 60001),
+    "TGTD": ("239.192.0.2", 60002),
+    "SATD": ("239.192.0.3", 60003),
+    "NAVD": ("239.192.0.4", 60004),
+    "VDRD": ("239.192.0.5", 60005),
+    "RCOM": ("239.192.0.6", 60006),
+    "TIME": ("239.192.0.7", 60007),
+    "PROP": ("239.192.0.8", 60008),
+    "USR1": ("239.192.0.9", 60009),
+    "USR2": ("239.192.0.10", 60010),
+    "USR3": ("239.192.0.11", 60011),
+    "USR4": ("239.192.0.12", 60012),
+    "USR5": ("239.192.0.13", 60013),
+    "USR6": ("239.192.0.14", 60014),
+    "USR7": ("239.192.0.15", 60015),
+    "USR8": ("239.192.0.16", 60016),
+    "BAM1": ("239.192.0.17", 60017),
+    "BAM2": ("239.192.0.18", 60018),
+    "CAM1": ("239.192.0.19", 60019),
+    "CAM2": ("239.192.0.20", 60020),
+    "NETA": ("239.192.0.56", 60056),
+    "PGP1": ("239.192.0.57", 60057),
+    "PGP2": ("239.192.0.58", 60058),
+    "PGP3": ("239.192.0.59", 60059),
+    "PGP4": ("239.192.0.60", 60060),
+    "PGB1": ("239.192.0.61", 60061),
+    "PGB2": ("239.192.0.62", 60062),
+    "PGB3": ("239.192.0.63", 60063),
+    "PGB4": ("239.192.0.64", 60064),
+    
+}
+
+
+def multicast_listen(args: argparse.Namespace):
+    """Listen in on multicast traffic and output to stdout
+
+    Args:
+        args (argparse.Namespace): Command-line arguments
+    """
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, args.TTL)
+    sock.setsockopt(
+        socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(args.interface)
+    )
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, int(args.loopback))
+
+    group, port = TRANSMISSION_GROUPS[args.transmission_group]
+    sock.setsockopt(
+        socket.IPPROTO_IP,
+        socket.IP_ADD_MEMBERSHIP,
+        socket.inet_aton(group) + socket.inet_aton(args.interface),
+    )
+    sock.bind((group, port))
+    sock.setblocking(True)
+
+    try:
+        while True:
+            data = sock.recvmsg(65535)[0]
+            sys.stdout.write(
+                (b64encode(data).decode() + "\n") if args.base64 else data.decode()
+            )
+            sys.stdout.flush()
+    finally:
+        sock.setsockopt(
+            socket.IPPROTO_IP,
+            socket.IP_DROP_MEMBERSHIP,
+            socket.inet_aton(group) + socket.inet_aton(args.interface),
+        )
+        sock.close()
+
+def multicast_send(args: argparse.Namespace):
+    """Listen to stdin and push to multicast
+
+    Args:
+        args (argparse.Namespace): Command-line arguments
+    """
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, args.TTL)
+    sock.setsockopt(
+        socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(args.interface)
+    )
+    group, port = TRANSMISSION_GROUPS[args.transmission_group]
+    try:
+        for line in sys.stdin:
+            payload = b64decode(line.encode()) if args.base64 else line.encode()
+            sock.sendto(payload, (group, port))
+    finally:
+        sock.close()
+
+
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(prog="lwe450", description="Interface towards a LWE450 multicast network")
+    parser.add_argument("transmission_group", choices=TRANSMISSION_GROUPS.keys())
+    parser.add_argument(
+        "--base64",
+        action="store_true",
+        default=False,
+        help="base64 encode/decode each packet",
+    )
+    parser.add_argument("--interface", type=str, default="0.0.0.0")
+    parser.add_argument(
+        "--TTL",
+        type=int,
+        default=1,
+    )
+
+    sub_commands = parser.add_subparsers()
+
+    listen_parser = sub_commands.add_parser("listen")
+    listen_parser.add_argument("--loopback", type=bool, default=False)
+    listen_parser.set_defaults(func=multicast_listen)
+
+    sender_parser = sub_commands.add_parser("send")
+    sender_parser.set_defaults(func=multicast_send)
+
+    args = parser.parse_args()
+    args.func(args)
