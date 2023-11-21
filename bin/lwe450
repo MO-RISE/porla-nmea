@@ -7,8 +7,12 @@ outputting to stdout.
 
 import sys
 import socket
+import logging
 import argparse
+import warnings
 from base64 import b64encode, b64decode
+
+logger = logging.getLogger("lwe450")
 
 TRANSMISSION_GROUPS = {
     "MISC": ("239.192.0.1", 60001),
@@ -122,8 +126,9 @@ if __name__ == "__main__":
         type=int,
         default=1,
     )
+    parser.add_argument("--log-level", type=int, default=logging.INFO)
 
-    sub_commands = parser.add_subparsers()
+    sub_commands = parser.add_subparsers(required=True)
 
     listen_parser = sub_commands.add_parser("listen")
     listen_parser.add_argument("--loopback", type=bool, default=False)
@@ -133,4 +138,12 @@ if __name__ == "__main__":
     sender_parser.set_defaults(func=multicast_send)
 
     args = parser.parse_args()
+
+    # Setup logger
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s %(name)s %(message)s", level=args.log_level
+    )
+    logging.captureWarnings(True)
+    warnings.filterwarnings("once")
+
     args.func(args)

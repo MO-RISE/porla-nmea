@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+
+"""
+Command line utility tool for encoding/decoing ais data on stdin/stdout
+"""
+
+import sys
+import logging
+import argparse
+import warnings
+
+from pyais.stream import BinaryIOStream
+from pyais.messages import JSONEncoder
+
+logger = logging.getLogger("ais")
+
+def encode(args: argparse.Namespace):
+    """Encode ais messages to NMEA0183 from JSON
+
+    Args:
+        args (argparse.Namespace): Command-line arguments
+    """
+
+    raise NotImplementedError("Encoding of AIS from JSON to NMEA0183 is not yet supported.")
+
+def decode(args: argparse.Namespace):
+    """Decode ais messages from NMEA0183 to JSON
+
+    Args:
+        args (argparse.Namespace): Command-line arguments
+    """
+
+    with BinaryIOStream(sys.stdin.buffer) as stream:
+
+        json_encoder = JSONEncoder()
+
+        try:
+            for msg in stream:
+                logger.debug("Got message: %s", msg)
+
+                decoded_message = msg.decode()
+                logger.debug("Decoded as: %s", decoded_message)
+                
+                json_message = json_encoder.encode(decoded_message.asdict())
+                logger.debug("JSON encoded as: %s", json_message)
+
+                sys.stdout.write(json_message + "\n")
+                sys.stdout.flush()
+        except KeyboardInterrupt:
+            logger.info("Closing down on user request (Ctrl-C)")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(prog="ais", description="Encode/decode ais <-> json")
+
+    parser.add_argument("--log-level", type=int, default=logging.INFO)
+
+    sub_commands = parser.add_subparsers()
+
+    encode_parser = sub_commands.add_parser("encode")
+    encode_parser.set_defaults(func=encode)
+
+    decode_parser = sub_commands.add_parser("decode")
+    decode_parser.set_defaults(func=decode)
+
+    args = parser.parse_args()
+
+    # Setup logger
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s %(name)s %(message)s", level=args.log_level
+    )
+    logging.captureWarnings(True)
+    warnings.filterwarnings("once")
+
+    args.func(args)
