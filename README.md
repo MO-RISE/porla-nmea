@@ -8,11 +8,11 @@ This extension provides functionality to handle ~~NMEA0183~~, NMEA2000 and LWE45
 ### Built-in functionality
 
 * `lwe450` - Support for interfacing (listening/sending) to LWE450 multicast networks
+* `ais` - Encode/decode ais messages from nmea0183 to/from json
 
 ### 3rd-party tools
 
 * All binaries provided by the `canboat` project, see here: https://github.com/canboat/canboat/wiki#programs-included-in-canboat
-* The `ais-decode` command line utility from the `pyais`package: https://github.com/M0r13n/pyais
 
 ## Usage
 
