@@ -21,6 +21,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - 
+        name: Generating metadata
+        id: docker_metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            latest
+            ${{ github.event.release.tag_name }}
       -
         name: Build and push
         id: docker_build
@@ -28,9 +37,8 @@ jobs:
         with:
           file: Dockerfile
           push: true
-          tags: |
-            ghcr.io/mo-rise/porla-nmea:latest
-            ghcr.io/mo-rise/porla-nmea:${{ github.event.release.tag_name }}
+          tags: ${{ steps.docker_metadata.outputs.tags }}
+          labels: ${{ steps.docker_metadata.outputs.labels }}
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
